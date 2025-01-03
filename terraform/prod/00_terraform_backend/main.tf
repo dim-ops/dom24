@@ -1,7 +1,7 @@
 module "s3_bucket" {
   source = "terraform-aws-modules/s3-bucket/aws"
 
-  bucket = "dom24-tfstate-24"
+  bucket = "dom24-tfstate"
 
   versioning = {
     enabled = true
