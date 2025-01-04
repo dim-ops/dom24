@@ -62,6 +62,8 @@ Je ne détaillerai pas comment fonctionne Terraform ici, mais voici [la document
 
 Dans cette section, vous allez créer le bucket S3 qui contiendra vos **tfstate** ainsi que la base DynamoDB pour gérer les locks Terraform.
 
+Pensez à faire un __aws configure__ afin de configurer des votre terminal pour executer des commandes via la ligne de commande terraform.
+
 ### 1. Création du backend Terraform
 
 Comme l'infrastructure Terraform n'est pas encore en place, vous allez créer via les lignes de commandes ci-dessous le bucket S3 et la table DynamoDB.
@@ -91,7 +93,7 @@ Le **billing mode** signifie que vous serez facturé à la requête: 0 requête 
 
 À cette étape, vous avez tout ce qu'il faut pour commencer à utiliser Terraform.
 
-Allez dans le répertoire __terraform/<env>/00_terraform_backend__.
+Allez dans le répertoire __terraform/env/00_terraform_backend__.
 
 Afin de respecter les bonnes pratiques d'**Infrastructure as Code**, vous allez réconcilier Terraform et votre infrastructure. Pour cela, vous allez réaliser des terraform import. Cette commande permet d'ajouter une ressource existante dans le tfstate.
 
@@ -103,6 +105,8 @@ terraform import 'module.s3_bucket.aws_s3_bucket_public_access_block.this[0]' '<
 terraform import 'aws_dynamodb_table.terraform_lock' 'terraform-lock-table'
 ```
 
+A cete étape, vous devriez avoir quelques changements en attente, car nous n'avons pas de spécifier les tags dans nos commandes CLI. Vous pouvez faire un __terraform apply__ afin de les ajouter.
+
 Vous devriez avoir cette sortie quand vous exécutez la commande. __terraform plan__:
 ```No changes. Your infrastructure matches the configuration.```
 
@@ -112,7 +116,7 @@ Vous pouvez vous attaquer à la création du réseau AWS.
 
 Dans un premier temps, je vous invite manuellement à supprimer le VPC par défaut de votre région. Il ne vous servira pas.
 
-Ensuite, rendez-vous dans le répertoire __terraform/<env>/10_vpc__.
+Ensuite, rendez-vous dans le répertoire __terraform/env/10_vpc__.
 
 Un **terraform apply** suffira à créer toute l'infrastructure réseau.
 
@@ -120,16 +124,17 @@ Vous créez:
 - 1 VPC
 - 1 Internet Gateway (trafic entrant)
 - 1 Nat Gateway (trafic sortant)
-- 3 subnets publics (pour les load balancers)
-- 3 subnets privés (pour noeuds EKS)
+- 2 subnets publics (pour les load balancers)
+- 2 subnets privés (pour noeuds EKS)
 - 1 route table publique
 - 1 route table privée
 
+Si demain vous souhaitez une architecture plus robuste afin avec 3 azs, voici le réseau que vous obtiendrez:
 ![VPC Architecture](/docs/images/vpc-0.png)
 
 ## Création du cluster EKS (Elastic Kubernetes Service)
 
-Vous pouvez enchaîner avec la création du cluster en réalisant un terraform apply dans le layer __terraform/<env>/20_eks__. Pour rappel, le choix a été fait de partir sur **EKS auto-mode**, ce qui permet de ne pas se soucier de la gestion des nœuds par [Karpenter](https://karpenter.sh/) qui est **préinstallé**.
+Vous pouvez enchaîner avec la création du cluster en réalisant un __terraform apply__ dans le layer __terraform/env/20_eks__. Pour rappel, le choix a été fait de partir sur **EKS auto-mode**, ce qui permet de ne pas se soucier de la gestion des nœuds par [Karpenter](https://karpenter.sh/) qui est **préinstallé**.
 
 Pour vous connecter au cluster, vous devez récupérer le kubeconfig:
 
@@ -143,9 +148,18 @@ Vous pouvez valider que tout fonctionne avec la commande suivante:
 kubectl get nodes
 ```
 
+Si ce n'est pas fait, installez helm et executez les commandes:
+
+```bash
+helm repo add "eks" "https://aws.github.io/eks-charts"
+helm repo update
+```
+
+Ce
+
 ## Création des Load Balancers & Storage Class
 
-Dans le layer __terraform/<env>/25_eks_addons__, vous allez créer les storage classes essentielles pour pouvoir utiliser EBS avec EKS.
+Dans le layer __terraform/env/25_eks_addons__, vous allez créer les storage classes essentielles pour pouvoir utiliser EBS avec EKS.
 
 Pour en savoir plus sur les storage policies, vous pouvez lire cette [documentation](docs/eks-storage-class.md).
 
