@@ -39,23 +39,6 @@ module "eks" {
       addon_version            = "v2.6.0-eksbuild.1"
       service_account_role_arn = module.cloudwatch_irsa_role.iam_role_arn
     }
-    aws-ebs-csi-driver = {
-      most_recent              = false
-      addon_version            = "v1.37.0-eksbuild.1"
-      service_account_role_arn = module.ebs_csi_irsa_role.iam_role_arn
-    }
-    coredns = {
-      most_recent   = false
-      addon_version = "v1.11.4-eksbuild.1"
-    }
-    kube-proxy = {
-      most_recent   = false
-      addon_version = "v1.31.3-eksbuild.2"
-    }
-    vpc-cni = {
-      most_recent   = false
-      addon_version = "v1.19.2-eksbuild.1"
-    }
   }
 
   # Gestion des logs
@@ -82,21 +65,6 @@ resource "aws_cloudwatch_log_group" "containerinsights" {
 # IAM ROLE IRSA ADDONS#
 #######################
 
-module "ebs_csi_irsa_role" {
-  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-  version = "~> 5.0"
-
-  role_name             = "${local.cluster_name}-ebs-csi"
-  attach_ebs_csi_policy = true
-
-  oidc_providers = {
-    ex = {
-      provider_arn               = module.eks.oidc_provider_arn
-      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"] # namespace:service_account
-    }
-  }
-}
-
 module "cloudwatch_irsa_role" {
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
   version = "~> 5.0"
@@ -112,5 +80,3 @@ module "cloudwatch_irsa_role" {
     }
   }
 }
-
-
