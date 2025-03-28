@@ -9,7 +9,7 @@ resource "kubernetes_storage_class" "ebs_gp3" {
       "storageclass.kubernetes.io/is-default-class" = "true"
     }
   }
-  storage_provisioner = "ebs.csi.aws.com"
+  storage_provisioner = "ebs.csi.eks.amazonaws.com"
   reclaim_policy      = "Delete"
   volume_binding_mode = "WaitForFirstConsumer"
   parameters = {
@@ -22,7 +22,7 @@ resource "kubernetes_storage_class" "ebs_gp3_retain" {
   metadata {
     name = "ebs-gp3-retain"
   }
-  storage_provisioner = "ebs.csi.aws.com"
+  storage_provisioner = "ebs.csi.eks.amazonaws.com"
   reclaim_policy      = "Retain"
   volume_binding_mode = "WaitForFirstConsumer"
   parameters = {
@@ -90,7 +90,7 @@ resource "helm_release" "alb_controller" {
 
   set {
     name  = "vpcId"
-    value = data.terraform_remote_state.vpc.outputs.vpc_id
+    value = "vpc-0e450be39717f3b46"
   }
 
   depends_on = [ module.aws_load_balancer_controller_irsa_role ]
