@@ -90,7 +90,7 @@ resource "helm_release" "alb_controller" {
 
   set {
     name  = "vpcId"
-    value = "vpc-0e450be39717f3b46"
+    value = data.terraform_remote_state.vpc.outputs.vpc_id
   }
 
   depends_on = [ module.aws_load_balancer_controller_irsa_role ]
